@@ -1,0 +1,162 @@
+{
+  "players": {
+    "usr_seed_1": {
+      "id": "usr_seed_1",
+      "nickname": "SigmaChad67",
+      "recoveryKey": "AURA-7A91",
+      "totalPoints": 14204,
+      "highestCombo": 14,
+      "createdAt": "2026-10-26T08:00:00.000Z",
+      "updatedAt": "2026-10-28T16:10:00.000Z"
+    },
+    "usr_seed_2": {
+      "id": "usr_seed_2",
+      "nickname": "SkrillaGod",
+      "recoveryKey": "AURA-9B42",
+      "totalPoints": 8710,
+      "highestCombo": 9,
+      "createdAt": "2026-10-26T11:20:00.000Z",
+      "updatedAt": "2026-10-28T14:45:00.000Z"
+    },
+    "usr_seed_3": {
+      "id": "usr_seed_3",
+      "nickname": "BalanzaMaster",
+      "recoveryKey": "AURA-3C15",
+      "totalPoints": 5695,
+      "highestCombo": 7,
+      "createdAt": "2026-10-27T09:15:00.000Z",
+      "updatedAt": "2026-10-28T12:00:00.000Z"
+    },
+    "usr_seed_4": {
+      "id": "usr_seed_4",
+      "nickname": "MewingSensei",
+      "recoveryKey": "AURA-5D88",
+      "totalPoints": 3685,
+      "highestCombo": 6,
+      "createdAt": "2026-10-27T14:30:00.000Z",
+      "updatedAt": "2026-10-28T15:20:00.000Z"
+    },
+    "usr_seed_5": {
+      "id": "usr_seed_5",
+      "nickname": "GigaAura_99",
+      "recoveryKey": "AURA-2E73",
+      "totalPoints": 2680,
+      "highestCombo": 5,
+      "createdAt": "2026-10-27T18:00:00.000Z",
+      "updatedAt": "2026-10-28T13:40:00.000Z"
+    },
+    "usr_seed_6": {
+      "id": "usr_seed_6",
+      "nickname": "DootDootFarmer",
+      "recoveryKey": "AURA-8F04",
+      "totalPoints": 2010,
+      "highestCombo": 4,
+      "createdAt": "2026-10-28T09:00:00.000Z",
+      "updatedAt": "2026-10-28T16:00:00.000Z"
+    },
+    "usr_seed_7": {
+      "id": "usr_seed_7",
+      "nickname": "ElSeisSiete",
+      "recoveryKey": "AURA-6A11",
+      "totalPoints": 1340,
+      "highestCombo": 3,
+      "createdAt": "2026-10-28T10:15:00.000Z",
+      "updatedAt": "2026-10-28T17:10:00.000Z"
+    },
+    "usr_seed_8": {
+      "id": "usr_seed_8",
+      "nickname": "RizzlerKing",
+      "recoveryKey": "AURA-4B92",
+      "totalPoints": 938,
+      "highestCombo": 3,
+      "createdAt": "2026-10-28T11:00:00.000Z",
+      "updatedAt": "2026-10-28T15:00:00.000Z"
+    },
+    "usr_seed_9": {
+      "id": "usr_seed_9",
+      "nickname": "BalanzaTitan",
+      "recoveryKey": "AURA-1C49",
+      "totalPoints": 670,
+      "highestCombo": 2,
+      "createdAt": "2026-10-28T13:00:00.000Z",
+      "updatedAt": "2026-10-28T16:45:00.000Z"
+    },
+    "usr_seed_10": {
+      "id": "usr_seed_10",
+      "nickname": "NovatoConAura",
+      "recoveryKey": "AURA-9D27",
+      "totalPoints": 335,
+      "highestCombo": 2,
+      "createdAt": "2026-10-28T14:30:00.000Z",
+      "updatedAt": "2026-10-28T17:30:00.000Z"
+    },
+    "usr_pfsn853mvsuu40f": {
+      "id": "usr_pfsn853mvsuu40f",
+      "nickname": "Toledin",
+      "recoveryKey": "AURA-38177D",
+      "totalPoints": 57017,
+      "highestCombo": 81,
+      "createdAt": "2026-10-29T01:41:52.027Z",
+      "updatedAt": "2026-10-29T02:38:34.202Z"
+    }
+  },
+  "weeklyScores": {
+    "2026-W44": {
+      "usr_seed_1": {
+        "points": 14204,
+        "highestCombo": 14,
+        "updatedAt": "2026-10-28T16:10:00.000Z"
+      },
+      "usr_seed_2": {
+        "points": 8710,
+        "highestCombo": 9,
+        "updatedAt": "2026-10-28T14:45:00.000Z"
+      },
+      "usr_seed_3": {
+        "points": 5695,
+        "highestCombo": 7,
+        "updatedAt": "2026-10-28T12:00:00.000Z"
+      },
+      "usr_seed_4": {
+        "points": 3685,
+        "highestCombo": 6,
+        "updatedAt": "2026-10-28T15:20:00.000Z"
+      },
+      "usr_seed_5": {
+        "points": 2680,
+        "highestCombo": 5,
+        "updatedAt": "2026-10-28T13:40:00.000Z"
+      },
+      "usr_seed_6": {
+        "points": 2010,
+        "highestCombo": 4,
+        "updatedAt": "2026-10-28T16:00:00.000Z"
+      },
+      "usr_seed_7": {
+        "points": 1340,
+        "highestCombo": 3,
+        "updatedAt": "2026-10-28T17:10:00.000Z"
+      },
+      "usr_seed_8": {
+        "points": 938,
+        "highestCombo": 3,
+        "updatedAt": "2026-10-28T15:00:00.000Z"
+      },
+      "usr_seed_9": {
+        "points": 670,
+        "highestCombo": 2,
+        "updatedAt": "2026-10-28T16:45:00.000Z"
+      },
+      "usr_seed_10": {
+        "points": 335,
+        "highestCombo": 2,
+        "updatedAt": "2026-10-28T17:30:00.000Z"
+      },
+      "usr_pfsn853mvsuu40f": {
+        "points": 57017,
+        "highestCombo": 81,
+        "updatedAt": "2026-10-29T02:38:34.202Z"
+      }
+    }
+  }
+}

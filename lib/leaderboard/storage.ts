@@ -1,0 +1,263 @@
+import fs from "fs/promises";
+import path from "path";
+import crypto from "crypto";
+import {
+  LeaderboardData,
+  LeaderboardEntry,
+  LeaderboardResponse,
+  Player,
+  WeeklyScoreRecord,
+} from "./types";
+import { getRank } from "@/lib/ranks";
+
+const DATA_DIR = path.join(process.cwd(), "data");
+const DATA_FILE = path.join(DATA_DIR, "leaderboard.json");
+
+// Mutex queue to serialize file writes and prevent concurrent file corruption
+let writeQueue = Promise.resolve();
+
+function enqueueWrite<T>(action: () => Promise<T>): Promise<T> {
+  const result = writeQueue.then(action);
+  writeQueue = result.then(() => {}).catch(() => {});
+  return result;
+}
+
+export function getCurrentWeekKey(d = new Date()): string {
+  // ISO-8601 week calculation
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil(((date.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+  return `${date.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`;
+}
+
+export function getNextResetDate(d = new Date()): Date {
+  const date = new Date(d);
+  const day = date.getUTCDay();
+  // Monday is 1. Days until next Monday:
+  const daysUntilNextMonday = ((8 - day) % 7) || 7;
+  const nextMonday = new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() + daysUntilNextMonday, 0, 0, 0, 0)
+  );
+  return nextMonday;
+}
+
+export function generateRecoveryKey(): string {
+  const rand = crypto.randomBytes(3).toString("hex").toUpperCase();
+  return `AURA-${rand}`;
+}
+
+async function loadData(): Promise<LeaderboardData> {
+  try {
+    const raw = await fs.readFile(DATA_FILE, "utf-8");
+    const parsed = JSON.parse(raw);
+    return {
+      players: parsed.players || {},
+      weeklyScores: parsed.weeklyScores || {},
+    };
+  } catch {
+    return {
+      players: {},
+      weeklyScores: {},
+    };
+  }
+}
+
+async function saveData(data: LeaderboardData): Promise<void> {
+  await fs.mkdir(DATA_DIR, { recursive: true });
+  const tempFile = `${DATA_FILE}.tmp.${Date.now()}.${Math.random().toString(36).substring(2, 6)}`;
+  await fs.writeFile(tempFile, JSON.stringify(data, null, 2), "utf-8");
+  await fs.rename(tempFile, DATA_FILE);
+}
+
+export async function getPlayer(playerId: string): Promise<Player | null> {
+  const data = await loadData();
+  return data.players[playerId] || null;
+}
+
+export async function getPlayerByRecoveryKey(recoveryKey: string): Promise<Player | null> {
+  const data = await loadData();
+  const normalizedKey = recoveryKey.trim().toUpperCase();
+  const player = Object.values(data.players).find(
+    (p) => p.recoveryKey.toUpperCase() === normalizedKey
+  );
+  return player || null;
+}
+
+export async function addPlayerRoundScore(params: {
+  playerId: string;
+  nickname?: string;
+  pointsToAdd: number;
+  combo?: number;
+}): Promise<{ player: Player; weeklyScore: WeeklyScoreRecord; week: string }> {
+  return enqueueWrite(async () => {
+    const data = await loadData();
+    const now = new Date().toISOString();
+    const week = getCurrentWeekKey();
+
+    let player = data.players[params.playerId];
+    const cleanNick = (params.nickname?.trim() || player?.nickname || `AuraFarmer_${params.playerId.slice(0, 4)}`).slice(0, 20);
+    const safeAdd = Math.max(0, params.pointsToAdd);
+
+    if (!player) {
+      player = {
+        id: params.playerId,
+        nickname: cleanNick,
+        recoveryKey: generateRecoveryKey(),
+        totalPoints: safeAdd,
+        highestCombo: params.combo || 0,
+        createdAt: now,
+        updatedAt: now,
+      };
+    } else {
+      player.nickname = cleanNick;
+      player.totalPoints = (player.totalPoints || 0) + safeAdd;
+      player.highestCombo = Math.max(player.highestCombo || 0, params.combo || 0);
+      player.updatedAt = now;
+    }
+    data.players[params.playerId] = player;
+
+    if (!data.weeklyScores[week]) {
+      data.weeklyScores[week] = {};
+    }
+
+    const currentWeekly = data.weeklyScores[week][params.playerId] || {
+      points: 0,
+      highestCombo: 0,
+      updatedAt: now,
+    };
+
+    const updatedWeekly: WeeklyScoreRecord = {
+      points: (currentWeekly.points || 0) + safeAdd,
+      highestCombo: Math.max(currentWeekly.highestCombo || 0, params.combo || 0),
+      updatedAt: now,
+    };
+    data.weeklyScores[week][params.playerId] = updatedWeekly;
+
+    await saveData(data);
+
+    return { player, weeklyScore: updatedWeekly, week };
+  });
+}
+
+export async function syncPlayerScore(params: {
+  playerId: string;
+  nickname?: string;
+  points: number;
+  combo?: number;
+}): Promise<{ player: Player; weeklyScore: WeeklyScoreRecord; week: string }> {
+  return enqueueWrite(async () => {
+    const data = await loadData();
+    const now = new Date().toISOString();
+    const week = getCurrentWeekKey();
+
+    let player = data.players[params.playerId];
+    const cleanNick = (params.nickname?.trim() || player?.nickname || `AuraFarmer_${params.playerId.slice(0, 4)}`).slice(0, 20);
+
+    if (!player) {
+      player = {
+        id: params.playerId,
+        nickname: cleanNick,
+        recoveryKey: generateRecoveryKey(),
+        totalPoints: Math.max(0, params.points),
+        highestCombo: params.combo || 0,
+        createdAt: now,
+        updatedAt: now,
+      };
+    } else {
+      player.nickname = cleanNick;
+      player.totalPoints = Math.max(player.totalPoints, params.points);
+      player.highestCombo = Math.max(player.highestCombo, params.combo || 0);
+      player.updatedAt = now;
+    }
+    data.players[params.playerId] = player;
+
+    if (!data.weeklyScores[week]) {
+      data.weeklyScores[week] = {};
+    }
+
+    const currentWeekly = data.weeklyScores[week][params.playerId] || {
+      points: 0,
+      highestCombo: 0,
+      updatedAt: now,
+    };
+
+    const updatedWeekly: WeeklyScoreRecord = {
+      points: Math.max(currentWeekly.points, params.points),
+      highestCombo: Math.max(currentWeekly.highestCombo, params.combo || 0),
+      updatedAt: now,
+    };
+    data.weeklyScores[week][params.playerId] = updatedWeekly;
+
+    await saveData(data);
+
+    return { player, weeklyScore: updatedWeekly, week };
+  });
+}
+
+export async function getLeaderboard(
+  weekKey?: string,
+  limit = 50,
+  currentUserId?: string
+): Promise<LeaderboardResponse> {
+  const data = await loadData();
+  const week = weekKey || getCurrentWeekKey();
+  const weeklyMap = data.weeklyScores[week] || {};
+
+  const entries: LeaderboardEntry[] = [];
+
+  for (const [playerId, score] of Object.entries(weeklyMap)) {
+    const player = data.players[playerId];
+    if (!player) continue;
+
+    const rankInfo = getRank(score.points);
+    entries.push({
+      rank: 0,
+      playerId,
+      nickname: player.nickname,
+      points: score.points,
+      highestCombo: score.highestCombo,
+      rankTitle: rankInfo.name,
+      rankEmoji: rankInfo.emoji,
+    });
+  }
+
+  // Sort descending by points, then by highestCombo
+  entries.sort((a, b) => b.points - a.points || b.highestCombo - a.highestCombo);
+
+  // Assign 1-indexed ranks
+  entries.forEach((item, index) => {
+    item.rank = index + 1;
+  });
+
+  const topPlayers = entries.slice(0, limit);
+
+  let currentUser: LeaderboardEntry | null = null;
+  if (currentUserId) {
+    const userFound = entries.find((e) => e.playerId === currentUserId);
+    if (userFound) {
+      currentUser = userFound;
+    } else if (data.players[currentUserId]) {
+      const p = data.players[currentUserId];
+      const r = getRank(0);
+      currentUser = {
+        rank: entries.length + 1,
+        playerId: p.id,
+        nickname: p.nickname,
+        points: 0,
+        highestCombo: 0,
+        rankTitle: r.name,
+        rankEmoji: r.emoji,
+      };
+    }
+  }
+
+  return {
+    week,
+    nextResetAt: getNextResetDate().toISOString(),
+    topPlayers,
+    totalPlayers: entries.length,
+    currentUser,
+  };
+}
