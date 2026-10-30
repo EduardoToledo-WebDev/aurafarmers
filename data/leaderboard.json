@@ -116,6 +116,26 @@
         "head": "head_golden_crown",
         "aura": "aura_rainbow"
       }
+    },
+    "usr_0ohcscamvufv74r": {
+      "id": "usr_0ohcscamvufv74r",
+      "nickname": "AuraFarmer",
+      "recoveryKey": "AURA-5D6467",
+      "totalPoints": 40736,
+      "highestCombo": 13,
+      "coins": 4073,
+      "unlockedItemIds": [
+        "gloves_classic",
+        "head_none",
+        "aura_classic"
+      ],
+      "equipped": {
+        "gloves": "gloves_classic",
+        "head": "head_none",
+        "aura": "aura_classic"
+      },
+      "createdAt": "2026-10-30T03:57:10.938Z",
+      "updatedAt": "2026-10-30T17:21:23.929Z"
     }
   },
   "weeklyScores": {
@@ -174,6 +194,11 @@
         "points": 303778,
         "highestCombo": 81,
         "updatedAt": "2026-10-30T03:36:05.734Z"
+      },
+      "usr_0ohcscamvufv74r": {
+        "points": 40736,
+        "highestCombo": 13,
+        "updatedAt": "2026-10-30T17:21:23.929Z"
       }
     }
   }

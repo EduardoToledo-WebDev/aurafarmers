@@ -133,6 +133,23 @@ export const translations = {
     rebirthCancelBtn: "Cancel",
     rebirthSuccess: "✨ Rebirth complete! Your Aura has returned to zero.",
     rebirthMismatchError: "Nickname does not match. Please verify spelling.",
+
+    // Legal & Privacy
+    legalTerms: "Terms & Fair Use",
+    legalPrivacy: "Privacy Policy",
+    legalDisclaimerFooter: "Educational Non-Profit Project • 100% Client-Side Vision",
+    legalModalTitle: "LEGAL DISCLAIMERS & PRIVACY",
+    legalTabTerms: "Terms & Copyright",
+    legalTabPrivacy: "Privacy Policy",
+    legalClose: "Close",
+    legalFairUseTitle: "Academic & Non-Profit Notice (Fair Use)",
+    legalFairUseText: "Aura Farmers 67 is an academic project developed strictly for educational, research, and non-commercial coursework evaluation. It generates zero revenue, contains no advertisements, and is not distributed commercially.",
+    legalCopyrightTitle: "Music Copyright & Attribution",
+    legalCopyrightText: "All featured audio tracks (including 'AURA' by Ogryzek and phonk background tracks) are the intellectual property and copyright of their respective artists and record labels. Their inclusion is made under the Fair Use doctrine (17 U.S. Code § 107) for non-profit educational demonstration. If you are a copyright holder and wish for your content to be removed, please contact us for immediate takedown.",
+    legalPrivacyTitle: "Zero Server Video Storage (100% Local)",
+    legalPrivacyText: "Your privacy is paramount. Camera video feeds and hand gestures are processed entirely in real-time inside your browser using Google MediaPipe WebAssembly. No video frames, camera feeds, or biometric data ever leave your device or reach our servers.",
+    legalDataTitle: "Leaderboard & Local Storage",
+    legalDataText: "Only your self-chosen nickname and game scores are stored for weekly rankings. Settings, unlocked cosmetics, and your secret recovery key are kept strictly in your browser's LocalStorage.",
   },
   es: {
     // Menu & Top bar
@@ -262,6 +279,23 @@ export const translations = {
     rebirthCancelBtn: "Cancelar",
     rebirthSuccess: "✨ ¡Renacer completado! Tu Aura ha vuelto a cero.",
     rebirthMismatchError: "El apodo no coincide. Verifica que esté escrito igual.",
+
+    // Legal & Privacy
+    legalTerms: "Términos y Uso Justo",
+    legalPrivacy: "Privacidad",
+    legalDisclaimerFooter: "Proyecto Educativo Sin Fines de Lucro • Visión 100% Local",
+    legalModalTitle: "AVISOS LEGALES Y PRIVACIDAD",
+    legalTabTerms: "Términos y Copyright",
+    legalTabPrivacy: "Política de Privacidad",
+    legalClose: "Cerrar",
+    legalFairUseTitle: "Aviso Académico Sin Fines de Lucro (Fair Use)",
+    legalFairUseText: "Aura Farmers 67 es un proyecto escolar desarrollado con fines estrictamente educativos, de investigación y evaluación universitaria. No genera ningún tipo de ingreso, no contiene anuncios publicitarios y no tiene distribución comercial.",
+    legalCopyrightTitle: "Derechos de Autor y Música",
+    legalCopyrightText: "Las pistas de audio incluidas (incluyendo 'AURA' de Ogryzek y temas phonk) son propiedad intelectual exclusiva de sus respectivos autores y sellos discográficos. Se utilizan bajo la doctrina de Uso Justo (Fair Use) para demostración educativa. Si eres titular de los derechos y deseas que sea retirado, contáctanos para su eliminación inmediata.",
+    legalPrivacyTitle: "Cero Almacenamiento de Video (100% Local)",
+    legalPrivacyText: "Tu privacidad está protegida. La cámara y los gestos de las manos se analizan en tiempo real directamente en tu navegador usando Google MediaPipe en WebAssembly. Ningún fotograma, imagen ni dato biométrico sale de tu dispositivo ni se envía a ningún servidor.",
+    legalDataTitle: "Clasificación y Almacenamiento Local",
+    legalDataText: "Únicamente se almacena tu apodo elegido y puntuaciones para la tabla semanal de líderes. Las opciones, cosméticos desbloqueados y tu llave secreta se guardan localmente en el LocalStorage de tu navegador.",
   },
 };
 

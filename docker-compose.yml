@@ -1,0 +1,15 @@
+services:
+  aurafarmers:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aurafarmers-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    volumes:
+      - ./data:/app/data

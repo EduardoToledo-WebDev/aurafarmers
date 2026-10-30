@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { startMainMenuTour } from "@/lib/tour";
+import LegalModal from "@/components/layout/LegalModal";
 
 interface MainMenuProps {
   onPlayClick: () => void;
@@ -40,6 +41,7 @@ export default function MainMenu({
   coins,
 }: MainMenuProps) {
   const { t, lang } = useI18n();
+  const [showLegalModal, setShowLegalModal] = React.useState(false);
 
   return (
     <div className="absolute inset-0 z-30 flex flex-col items-center justify-between p-6 sm:p-10 select-none animate-in fade-in duration-300">
@@ -164,13 +166,39 @@ export default function MainMenu({
         </div>
       </div>
 
-      {/* Footer hint */}
-      <div
-        id="tour-hint"
-        className="text-center text-xs text-zinc-300 font-medium tracking-wide bg-black/40 backdrop-blur-sm px-4 py-1.5 rounded-full border border-white/10"
-      >
-        {t("hintScale")}
+      {/* Footer hint & Discreet Legal Disclaimers */}
+      <div className="flex flex-col items-center gap-2">
+        <div
+          id="tour-hint"
+          className="text-center text-xs text-zinc-300 font-medium tracking-wide bg-black/40 backdrop-blur-sm px-4 py-1.5 rounded-full border border-white/10"
+        >
+          {t("hintScale")}
+        </div>
+
+        <div className="flex items-center gap-2.5 text-[10px] text-zinc-400 font-medium tracking-wide flex-wrap justify-center">
+          <span className="opacity-75">{t("legalDisclaimerFooter")}</span>
+          <span className="opacity-40">•</span>
+          <button
+            onClick={() => setShowLegalModal(true)}
+            className="text-zinc-400 hover:text-amber-300 transition underline underline-offset-2 cursor-pointer"
+          >
+            {t("legalTerms")}
+          </button>
+          <span className="opacity-40">•</span>
+          <button
+            onClick={() => setShowLegalModal(true)}
+            className="text-zinc-400 hover:text-cyan-300 transition underline underline-offset-2 cursor-pointer"
+          >
+            {t("legalPrivacy")}
+          </button>
+        </div>
       </div>
+
+      {/* Legal & Fair Use Modal */}
+      <LegalModal
+        isOpen={showLegalModal}
+        onClose={() => setShowLegalModal(false)}
+      />
     </div>
   );
 }
