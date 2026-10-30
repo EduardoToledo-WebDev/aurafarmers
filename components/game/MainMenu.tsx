@@ -71,6 +71,7 @@ export default function MainMenu({
           </button>
 
           <button
+            id="tour-audio"
             onClick={onToggleMusic}
             aria-label={musicMuted || !musicPlaying ? "Unmute" : "Mute"}
             title={musicMuted || !musicPlaying ? "Unmute" : "Mute"}

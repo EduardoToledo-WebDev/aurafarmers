@@ -94,11 +94,11 @@
       "id": "usr_pfsn853mvsuu40f",
       "nickname": "Toledin",
       "recoveryKey": "AURA-38177D",
-      "totalPoints": 285755,
+      "totalPoints": 303778,
       "highestCombo": 81,
       "createdAt": "2026-10-29T01:41:52.027Z",
-      "updatedAt": "2026-10-30T02:56:57.121Z",
-      "coins": 13941,
+      "updatedAt": "2026-10-30T03:36:05.734Z",
+      "coins": 15743,
       "unlockedItemIds": [
         "gloves_classic",
         "head_none",
@@ -171,9 +171,9 @@
         "updatedAt": "2026-10-28T17:30:00.000Z"
       },
       "usr_pfsn853mvsuu40f": {
-        "points": 285755,
+        "points": 303778,
         "highestCombo": 81,
-        "updatedAt": "2026-10-30T02:56:57.121Z"
+        "updatedAt": "2026-10-30T03:36:05.734Z"
       }
     }
   }
