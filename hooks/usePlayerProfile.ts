@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Player } from "@/lib/leaderboard/types";
+import { Player, PlayerEquipped } from "@/lib/leaderboard/types";
+import {
+  DEFAULT_EQUIPPED,
+  DEFAULT_UNLOCKED_ITEMS,
+  ShopCategory,
+} from "@/lib/shop/catalog";
 
 function getOrCreatePlayerId(): string {
   if (typeof window === "undefined") return "";
@@ -18,11 +23,36 @@ export function usePlayerProfile() {
   const [nickname, setNickname] = useState<string>("AuraFarmer");
   const [recoveryKey, setRecoveryKey] = useState<string>("");
   const [serverTotalPoints, setServerTotalPoints] = useState<number | null>(null);
+  const [coins, setCoins] = useState<number>(0);
+  const [unlockedItemIds, setUnlockedItemIds] = useState<string[]>(DEFAULT_UNLOCKED_ITEMS);
+  const [equipped, setEquipped] = useState<PlayerEquipped>(DEFAULT_EQUIPPED);
+  const [lastCoinsEarned, setLastCoinsEarned] = useState<number>(0);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [lastSyncError, setLastSyncError] = useState<string | null>(null);
 
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSyncedPointsRef = useRef<number>(-1);
+
+  // Helper to commit player fields to state & local cache
+  const applyPlayerState = useCallback((p: Player) => {
+    setNickname(p.nickname);
+    setRecoveryKey(p.recoveryKey);
+    setServerTotalPoints(p.totalPoints);
+    setCoins(typeof p.coins === "number" ? p.coins : 0);
+    const unlocked = Array.isArray(p.unlockedItemIds) && p.unlockedItemIds.length > 0
+      ? p.unlockedItemIds
+      : DEFAULT_UNLOCKED_ITEMS;
+    setUnlockedItemIds(unlocked);
+    const eq = p.equipped ? { ...DEFAULT_EQUIPPED, ...p.equipped } : DEFAULT_EQUIPPED;
+    setEquipped(eq);
+
+    localStorage.setItem("aurafarmers_nickname", p.nickname);
+    localStorage.setItem("aurafarmers_recovery_key", p.recoveryKey);
+    localStorage.setItem("aurafarmers_points", p.totalPoints.toString());
+    localStorage.setItem("aurafarmers_coins", (p.coins ?? 0).toString());
+    localStorage.setItem("aurafarmers_unlocked_items", JSON.stringify(unlocked));
+    localStorage.setItem("aurafarmers_equipped", JSON.stringify(eq));
+  }, []);
 
   // Initialize identity from localStorage and server
   useEffect(() => {
@@ -36,23 +66,30 @@ export function usePlayerProfile() {
     const savedKey = localStorage.getItem("aurafarmers_recovery_key");
     if (savedKey) setRecoveryKey(savedKey);
 
+    const savedCoins = localStorage.getItem("aurafarmers_coins");
+    if (savedCoins) setCoins(Number(savedCoins) || 0);
+
+    try {
+      const savedUnlocked = localStorage.getItem("aurafarmers_unlocked_items");
+      if (savedUnlocked) setUnlockedItemIds(JSON.parse(savedUnlocked));
+      const savedEq = localStorage.getItem("aurafarmers_equipped");
+      if (savedEq) setEquipped(JSON.parse(savedEq));
+    } catch {
+      // Fallback
+    }
+
     // Initial fetch to sync server state if already exists
     fetch(`/api/player?playerId=${encodeURIComponent(id)}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.player) {
-          setNickname(data.player.nickname);
-          setRecoveryKey(data.player.recoveryKey);
-          setServerTotalPoints(data.player.totalPoints);
-          localStorage.setItem("aurafarmers_nickname", data.player.nickname);
-          localStorage.setItem("aurafarmers_recovery_key", data.player.recoveryKey);
-          localStorage.setItem("aurafarmers_points", data.player.totalPoints.toString());
+          applyPlayerState(data.player);
         }
       })
       .catch(() => {});
-  }, []);
+  }, [applyPlayerState]);
 
-  // Sync points (replaces or sets total)
+  // Sync points
   const syncPoints = useCallback(
     (points: number, combo = 0, force = false) => {
       if (!playerId || (points === lastSyncedPointsRef.current && !force)) return;
@@ -80,10 +117,7 @@ export function usePlayerProfile() {
           const data = await res.json();
           if (data.player) {
             lastSyncedPointsRef.current = points;
-            if (data.player.recoveryKey && data.player.recoveryKey !== recoveryKey) {
-              setRecoveryKey(data.player.recoveryKey);
-              localStorage.setItem("aurafarmers_recovery_key", data.player.recoveryKey);
-            }
+            applyPlayerState(data.player);
           }
           setLastSyncError(null);
         } catch (err: unknown) {
@@ -100,10 +134,10 @@ export function usePlayerProfile() {
         syncTimeoutRef.current = setTimeout(performSync, 1500);
       }
     },
-    [playerId, nickname, recoveryKey]
+    [playerId, nickname, applyPlayerState]
   );
 
-  // Add round points (ACCUMULATES points to existing score)
+  // Add round points (ACCUMULATES points and earns coins)
   const addRoundScore = useCallback(
     async (pointsEarned: number, combo = 0): Promise<Player | null> => {
       if (!playerId || pointsEarned <= 0) return null;
@@ -125,12 +159,12 @@ export function usePlayerProfile() {
         const data = await res.json();
         if (data.player) {
           const updatedPlayer: Player = data.player;
-          if (updatedPlayer.recoveryKey) {
-            setRecoveryKey(updatedPlayer.recoveryKey);
-            localStorage.setItem("aurafarmers_recovery_key", updatedPlayer.recoveryKey);
+          applyPlayerState(updatedPlayer);
+          if (typeof data.coinsEarned === "number") {
+            setLastCoinsEarned(data.coinsEarned);
+          } else {
+            setLastCoinsEarned(Math.floor(pointsEarned / 10));
           }
-          localStorage.setItem("aurafarmers_points", updatedPlayer.totalPoints.toString());
-          setServerTotalPoints(updatedPlayer.totalPoints);
           return updatedPlayer;
         }
         return null;
@@ -141,7 +175,7 @@ export function usePlayerProfile() {
         setIsSyncing(false);
       }
     },
-    [playerId, nickname]
+    [playerId, nickname, applyPlayerState]
   );
 
   const updateNickname = useCallback(
@@ -185,15 +219,8 @@ export function usePlayerProfile() {
         if (data.player) {
           const p: Player = data.player;
           setPlayerId(p.id);
-          setNickname(p.nickname);
-          setRecoveryKey(p.recoveryKey);
-          setServerTotalPoints(p.totalPoints);
-
           localStorage.setItem("aurafarmers_player_id", p.id);
-          localStorage.setItem("aurafarmers_nickname", p.nickname);
-          localStorage.setItem("aurafarmers_recovery_key", p.recoveryKey);
-          localStorage.setItem("aurafarmers_points", p.totalPoints.toString());
-
+          applyPlayerState(p);
           return p;
         }
         return null;
@@ -201,7 +228,76 @@ export function usePlayerProfile() {
         return null;
       }
     },
-    []
+    [applyPlayerState]
+  );
+
+  const buyItem = useCallback(
+    async (itemId: string): Promise<{ success: boolean; error?: string }> => {
+      if (!playerId) return { success: false, error: "no_player" };
+
+      try {
+        setIsSyncing(true);
+        const res = await fetch("/api/shop/buy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ playerId, itemId }),
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          return { success: false, error: data.error || "buy_failed" };
+        }
+
+        if (data.player) {
+          applyPlayerState(data.player);
+        }
+        return { success: true };
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "buy_failed";
+        return { success: false, error: msg };
+      } finally {
+        setIsSyncing(false);
+      }
+    },
+    [playerId, applyPlayerState]
+  );
+
+  const equipItem = useCallback(
+    async (
+      slot: ShopCategory,
+      itemId: string
+    ): Promise<{ success: boolean; error?: string }> => {
+      if (!playerId) return { success: false, error: "no_player" };
+
+      // Optimistic update
+      setEquipped((prev) => {
+        const updated = { ...prev, [slot]: itemId };
+        localStorage.setItem("aurafarmers_equipped", JSON.stringify(updated));
+        return updated;
+      });
+
+      try {
+        const res = await fetch("/api/shop/equip", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ playerId, slot, itemId }),
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          return { success: false, error: data.error || "equip_failed" };
+        }
+
+        if (data.player) {
+          applyPlayerState(data.player);
+        }
+        return { success: true };
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "equip_failed";
+        return { success: false, error: msg };
+      }
+    },
+    [playerId, applyPlayerState]
   );
 
   return {
@@ -209,11 +305,17 @@ export function usePlayerProfile() {
     nickname,
     recoveryKey,
     serverTotalPoints,
+    coins,
+    unlockedItemIds,
+    equipped,
+    lastCoinsEarned,
     isSyncing,
     lastSyncError,
     syncPoints,
     addRoundScore,
     updateNickname,
     recoverProfile,
+    buyItem,
+    equipItem,
   };
 }

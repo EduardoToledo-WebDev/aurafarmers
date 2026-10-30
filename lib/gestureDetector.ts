@@ -297,6 +297,68 @@ export class Gesture67Tracker {
     };
   }
 
+  private lastFistPushTime: number = 0;
+
+  /**
+   * Detects closing both fists and pushing forward toward the screen
+   * (Cerrar los puños y empujar hacia la pantalla)
+   */
+  public detectDoubleFistPush(
+    hands: HandLandmarks[]
+  ): { detected: boolean; centerX: number; centerY: number } {
+    if (hands.length < 2) {
+      return { detected: false, centerX: 0.5, centerY: 0.5 };
+    }
+
+    const now = Date.now();
+    if (now - this.lastFistPushTime < 1000) {
+      return { detected: false, centerX: 0.5, centerY: 0.5 };
+    }
+
+    const isFist = (h: HandLandmarks) => {
+      if (!h || h.length < 21) return false;
+      const wrist = h[0];
+      const middleMcp = h[9];
+      const palmHeight = Math.hypot(middleMcp.x - wrist.x, middleMcp.y - wrist.y) || 0.05;
+
+      // In a closed fist, fingertips are curled inward close to their MCP joints or wrist
+      const indexTip = h[8];
+      const middleTip = h[12];
+      const ringTip = h[16];
+      const pinkyTip = h[20];
+
+      const indexCurled = Math.hypot(indexTip.x - h[5].x, indexTip.y - h[5].y) < palmHeight * 0.85;
+      const middleCurled = Math.hypot(middleTip.x - h[9].x, middleTip.y - h[9].y) < palmHeight * 0.85;
+      const ringCurled = Math.hypot(ringTip.x - h[13].x, ringTip.y - h[13].y) < palmHeight * 0.85;
+      const pinkyCurled = Math.hypot(pinkyTip.x - h[17].x, pinkyTip.y - h[17].y) < palmHeight * 0.85;
+
+      // Fist is when at least 3 of 4 fingers are tightly curled
+      const curledCount = (indexCurled ? 1 : 0) + (middleCurled ? 1 : 0) + (ringCurled ? 1 : 0) + (pinkyCurled ? 1 : 0);
+      const isClosedFist = curledCount >= 3;
+
+      // Pushed toward camera: palm/knuckle height is prominent
+      const isPushing = palmHeight > 0.075;
+
+      return isClosedFist && isPushing;
+    };
+
+    const fist1 = isFist(hands[0]);
+    const fist2 = isFist(hands[1]);
+
+    if (fist1 && fist2) {
+      this.lastFistPushTime = now;
+      const c1 = this.getEggPalmCenter(hands[0]);
+      const c2 = this.getEggPalmCenter(hands[1]);
+      return {
+        detected: true,
+        centerX: (c1.x + c2.x) / 2,
+        centerY: (c1.y + c2.y) / 2,
+      };
+    }
+
+    return { detected: false, centerX: 0.5, centerY: 0.5 };
+  }
+
   public reset() {
     this.lastDirection = "none";
     this.extremeDeltaY = 0;

@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
       player: result.player,
       weeklyScore: result.weeklyScore,
       week: result.week,
+      coinsEarned: "coinsEarned" in result ? result.coinsEarned : 0,
     });
   } catch (err: unknown) {
     if (err && typeof err === "object" && "digest" in err) {

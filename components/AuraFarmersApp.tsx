@@ -9,6 +9,8 @@ import CountdownOverlay from "@/components/game/CountdownOverlay";
 import CameraPermissionScreen from "@/components/game/CameraPermissionScreen";
 import MainMenu from "@/components/game/MainMenu";
 import RoundSummaryModal from "@/components/game/RoundSummaryModal";
+import ShopModal from "@/components/shop/ShopModal";
+import OverdriveEnergyBar from "@/components/game/OverdriveEnergyBar";
 import { useCamera } from "@/hooks/useCamera";
 import { useVisionModels } from "@/hooks/useVisionModels";
 import { useBackgroundMusic } from "@/hooks/useBackgroundMusic";
@@ -40,9 +42,15 @@ export default function AuraFarmersApp() {
     nickname,
     recoveryKey,
     serverTotalPoints,
+    coins,
+    unlockedItemIds,
+    equipped,
+    lastCoinsEarned,
     addRoundScore,
     updateNickname,
     recoverProfile,
+    buyItem,
+    equipItem,
   } = usePlayerProfile();
 
   // Navigation stage flow
@@ -67,12 +75,69 @@ export default function AuraFarmersApp() {
   const lastActivityTimeRef = useRef<number>(0);
   const [inactivityRemaining, setInactivityRemaining] = useState<number | null>(null);
 
+  // Aura Overdrive & Energy Bar state (10,000 points to fill)
+  const ENERGY_POINTS_MAX = 10000;
+  const [energyPoints, setEnergyPoints] = useState<number>(0);
+  const [overdriveUntil, setOverdriveUntil] = useState<number>(0);
+  const overdriveUntilRef = useRef<number>(0);
+  const [overdriveRemaining, setOverdriveRemaining] = useState<number | null>(null);
+  const [cooldownUntil, setCooldownUntil] = useState<number>(0);
+  const [cooldownRemaining, setCooldownRemaining] = useState<number | null>(null);
+
+  const isOverdriveActive = overdriveRemaining !== null && overdriveRemaining > 0;
+  const isOverdriveReady =
+    energyPoints >= ENERGY_POINTS_MAX && cooldownRemaining === null && !isOverdriveActive;
+  const energyPercent = Math.min(100, Math.floor((energyPoints / ENERGY_POINTS_MAX) * 100));
+
+  const handleOverdriveTriggered = useCallback(() => {
+    const until = Date.now() + 7500;
+    overdriveUntilRef.current = until;
+    setOverdriveUntil(until);
+    setEnergyPoints(0);
+  }, []);
+
+  // Overdrive active countdown
+  useEffect(() => {
+    if (overdriveUntil <= 0) return;
+    const interval = setInterval(() => {
+      const left = Math.max(0, Math.ceil((overdriveUntilRef.current - Date.now()) / 1000));
+      if (left > 0) {
+        setOverdriveRemaining(left);
+      } else {
+        setOverdriveRemaining(null);
+        setOverdriveUntil(0);
+        overdriveUntilRef.current = 0;
+        // Start 20-second cooldown after Overdrive ends
+        setCooldownUntil(Date.now() + 20000);
+      }
+    }, 200);
+
+    return () => clearInterval(interval);
+  }, [overdriveUntil]);
+
+  // 20-second cooldown countdown
+  useEffect(() => {
+    if (cooldownUntil <= 0) return;
+    const interval = setInterval(() => {
+      const left = Math.max(0, Math.ceil((cooldownUntil - Date.now()) / 1000));
+      if (left > 0) {
+        setCooldownRemaining(left);
+      } else {
+        setCooldownRemaining(null);
+        setCooldownUntil(0);
+      }
+    }, 300);
+
+    return () => clearInterval(interval);
+  }, [cooldownUntil]);
+
   // Leaderboard data & Next rival tracker
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardResponse | null>(null);
 
   // Modals state
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   const [leaderboardOpen, setLeaderboardOpen] = useState<boolean>(false);
+  const [shopOpen, setShopOpen] = useState<boolean>(false);
 
   const comboRef = useRef<number>(0);
   const comboTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -182,17 +247,25 @@ export default function AuraFarmersApp() {
       setCombo(currentCombo);
       setHighestRoundCombo((prev) => Math.max(prev, currentCombo));
 
-      const nextMultiplier = Math.min(5, 1 + Math.floor(currentCombo / 3));
+      const isOverdrive = Date.now() < overdriveUntilRef.current;
+      const nextMultiplier = isOverdrive ? 5 : Math.min(5, 1 + Math.floor(currentCombo / 3));
       const addedPoints = 67 * nextMultiplier;
 
       // Accumulate round points
       roundPointsRef.current += addedPoints;
       setRoundPoints(roundPointsRef.current);
 
+      // Charge energy bar if not in overdrive and not in cooldown
+      if (!isOverdrive && cooldownRemaining === null) {
+        setEnergyPoints((prev) => Math.min(ENERGY_POINTS_MAX, prev + addedPoints));
+      }
+
       setBurstUntil(performance.now() + 900);
 
       // Play sound effects
-      if (currentCombo >= 2) {
+      if (isOverdrive) {
+        sounds.playAuraOverdrive();
+      } else if (currentCombo >= 2) {
         sounds.playComboSound(currentCombo);
         if (currentCombo === 3) {
           sounds.playLaserZap();
@@ -202,11 +275,13 @@ export default function AuraFarmersApp() {
       }
 
       if (typeof navigator !== "undefined" && navigator.vibrate) {
-        navigator.vibrate(currentCombo >= 3 ? [45, 20, 60] : 35);
+        navigator.vibrate(isOverdrive ? [60, 30, 80] : currentCombo >= 3 ? [45, 20, 60] : 35);
       }
 
       const label =
-        currentCombo >= 3
+        isOverdrive
+          ? `⚡ +${addedPoints} x5 OVERDRIVE!`
+          : currentCombo >= 3
           ? `🔥 +${addedPoints} x${nextMultiplier}`
           : nextMultiplier > 1
           ? `⚡ +${addedPoints}`
@@ -319,32 +394,49 @@ export default function AuraFarmersApp() {
       {stage === "main_menu" && (
         <MainMenu
           onPlayClick={handleStartRound}
+          onOpenShop={() => setShopOpen(true)}
           onOpenLeaderboard={() => setLeaderboardOpen(true)}
           onOpenSettings={() => setSettingsOpen(true)}
           musicMuted={musicMuted}
           musicPlaying={musicPlaying}
           onToggleMusic={toggleMusic}
           auraPoints={totalAuraPoints}
+          coins={coins}
         />
       )}
 
-      {/* 3. BLEND TOPBAR (Active during gameplay) */}
+      {/* 3. ULTRA-FINE OVERDRIVE ENERGY BAR (Top fixed) */}
+      {stage === "playing" && (
+        <OverdriveEnergyBar
+          energyPercent={energyPercent}
+          isReady={isOverdriveReady}
+          isOverdriveActive={isOverdriveActive}
+          overdriveUntil={overdriveUntil}
+          overdriveDurationMs={7500}
+          cooldownUntil={cooldownUntil}
+          cooldownDurationMs={20000}
+        />
+      )}
+
+      {/* 4. BLEND TOPBAR (Active during gameplay) */}
       {stage === "playing" && (
         <TopBar
           combo={combo}
           auraPoints={liveAuraPoints}
+          coins={coins}
           nextRival={getNextRival()}
           inactivityRemaining={inactivityRemaining}
           onEndRound={handleEndRound}
           musicMuted={musicMuted}
           musicPlaying={musicPlaying}
           onToggleMusic={toggleMusic}
+          onOpenShop={() => setShopOpen(true)}
           onOpenLeaderboard={() => setLeaderboardOpen(true)}
           onOpenSettings={() => setSettingsOpen(true)}
         />
       )}
 
-      {/* 4. MAIN GAME & VISION CANVAS */}
+      {/* 5. MAIN GAME & VISION CANVAS */}
       <GameCanvas
         videoRef={videoRef}
         cameraStatus={cameraStatus}
@@ -352,6 +444,10 @@ export default function AuraFarmersApp() {
         modelError={modelError}
         combo={combo}
         isBlurred={isBlurred}
+        equipped={equipped}
+        isOverdriveActive={isOverdriveActive}
+        isOverdriveReady={isOverdriveReady}
+        onOverdriveTriggered={handleOverdriveTriggered}
         handLandmarkerRef={handLandmarkerRef}
         faceDetectorRef={faceDetectorRef}
         floatingPoints={floatingPoints}
@@ -372,6 +468,8 @@ export default function AuraFarmersApp() {
         isOpen={stage === "summary"}
         pointsGained={roundPointsGained}
         highestCombo={highestRoundCombo}
+        coinsGained={lastCoinsEarned || Math.floor(roundPointsGained / 10)}
+        totalCoins={coins}
         startRank={startRank}
         finalRank={finalRank}
         nextRival={getNextRival()}
@@ -379,7 +477,18 @@ export default function AuraFarmersApp() {
         onBackToMenu={() => setStage("main_menu")}
       />
 
-      {/* 7. SETTINGS MODAL */}
+      {/* 7. COSMETICS SHOP MODAL */}
+      <ShopModal
+        isOpen={shopOpen}
+        onClose={() => setShopOpen(false)}
+        coins={coins}
+        unlockedItemIds={unlockedItemIds}
+        equipped={equipped}
+        onBuyItem={buyItem}
+        onEquipItem={equipItem}
+      />
+
+      {/* 8. SETTINGS MODAL */}
       <SettingsModal
         isOpen={settingsOpen}
         onClose={() => setSettingsOpen(false)}
@@ -402,7 +511,7 @@ export default function AuraFarmersApp() {
         }}
       />
 
-      {/* 8. WEEKLY LEADERBOARD MODAL */}
+      {/* 9. WEEKLY LEADERBOARD MODAL */}
       <LeaderboardModal
         isOpen={leaderboardOpen}
         onClose={() => setLeaderboardOpen(false)}

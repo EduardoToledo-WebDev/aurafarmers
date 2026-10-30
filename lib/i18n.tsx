@@ -18,6 +18,10 @@ export const translations = {
     inactivityWarning: "⚠️ Inactive: Round ending in {s}s",
     pointsToBeat: "Need +{pts} pts to overtake {nick} (#{rank})",
     leadingRank1: "👑 #1 Leading the Leaderboard!",
+    overdriveActive: "⚡ OVERDRIVE {mult}X ACTIVE! ({s}s)",
+    overdriveReady: "👊 PUSH CLOSED FISTS TO ACTIVATE 5X OVERDRIVE!",
+    overdriveCooldown: "❄️ COOLDOWN: {s}s",
+    pushPalmsHint: "💥 Push both palms forward to unleash Overdrive!",
 
     // Camera permission
     cameraRequiredTitle: "Camera Access Required",
@@ -92,10 +96,31 @@ export const translations = {
     restoring: "Searching...",
     restoreSuccess: "Profile and points restored successfully!",
     restoreError: "Key not found or invalid. Please check capital letters.",
+
+    // Shop
+    shop: "SHOP",
+    shopTitle: "AURA COSMETICS SHOP",
+    shopSubtitle: "Customize your hand gauntlets, headgear and mystical auras",
+    coins: "Aura Coins",
+    coinsEarned: "COINS EARNED",
+    coinsBalance: "Coins Balance",
+    categoryAll: "ALL",
+    categoryGloves: "GLOVES",
+    categoryHead: "HEADWEAR",
+    categoryAura: "AURAS",
+    buy: "BUY",
+    equip: "EQUIP",
+    equipped: "EQUIPPED",
+    free: "FREE",
+    notEnoughCoins: "Need +{amount} more coins!",
+    needMoreCoinsHint: "Farm aura points in rounds to earn coins (10 pts = 1 coin)",
+    buySuccess: "Item unlocked & equipped!",
+    equipSuccess: "Item equipped!",
   },
   es: {
     // Menu & Top bar
     play: "JUGAR",
+    shop: "TIENDA",
     leaderboard: "TOP SEMANAL",
     settings: "AJUSTES",
     accumulatedAura: "AURA ACUMULADA",
@@ -106,6 +131,10 @@ export const translations = {
     inactivityWarning: "⚠️ Inactivo: La ronda terminará en {s}s",
     pointsToBeat: "Faltan +{pts} pts para superar a {nick} (#{rank})",
     leadingRank1: "👑 ¡Puesto #1 Liderando la Tabla!",
+    overdriveActive: "⚡ ¡SOBREDISPARO {mult}X ACTIVO! ({s}s)",
+    overdriveReady: "👊 ¡CIERRA LOS PUÑOS Y EMPUJA PARA ACTIVAR 5X!",
+    overdriveCooldown: "❄️ RECARGA: {s}s",
+    pushPalmsHint: "💥 ¡Cierra los puños y empuja hacia la pantalla para activar Sobredisparo!",
 
     // Camera permission
     cameraRequiredTitle: "Se Requiere Cámara",
@@ -180,6 +209,25 @@ export const translations = {
     restoring: "Buscando...",
     restoreSuccess: "¡Perfil y puntos restaurados correctamente!",
     restoreError: "Llave no encontrada o inválida. Revisa mayúsculas.",
+
+    // Shop
+    shopTitle: "TIENDA DE COSMÉTICOS",
+    shopSubtitle: "Personaliza tus guanteletes, accesorios de cabeza y estelas místicas",
+    coins: "Monedas de Aura",
+    coinsEarned: "MONEDAS GANADAS",
+    coinsBalance: "Balance de Monedas",
+    categoryAll: "TODOS",
+    categoryGloves: "GUANTES",
+    categoryHead: "ACCESORIOS",
+    categoryAura: "ESTELAS",
+    buy: "COMPRAR",
+    equip: "EQUIPAR",
+    equipped: "EQUIPADO",
+    free: "GRATIS",
+    notEnoughCoins: "¡Te faltan +{amount} monedas!",
+    needMoreCoinsHint: "Farmea puntos en las rondas para conseguir monedas (10 pts = 1 moneda)",
+    buySuccess: "¡Objeto desbloqueado y equipado!",
+    equipSuccess: "¡Objeto equipado!",
   },
 };
 

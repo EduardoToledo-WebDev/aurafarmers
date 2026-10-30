@@ -9,6 +9,8 @@ interface RoundSummaryModalProps {
   isOpen: boolean;
   pointsGained: number;
   highestCombo: number;
+  coinsGained: number;
+  totalCoins: number;
   startRank: number;
   finalRank: number;
   nextRival?: { nickname: string; rank: number; pointsNeeded: number } | null;
@@ -20,6 +22,8 @@ export default function RoundSummaryModal({
   isOpen,
   pointsGained,
   highestCombo,
+  coinsGained,
+  totalCoins,
   startRank,
   finalRank,
   nextRival,
@@ -70,22 +74,32 @@ export default function RoundSummaryModal({
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-3 w-full">
-          <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 flex flex-col items-center">
-            <span className="text-[10px] font-bold uppercase text-zinc-400 tracking-wider">
+        <div className="grid grid-cols-3 gap-2.5 w-full">
+          <div className="p-3 rounded-2xl bg-white/[0.04] border border-white/10 flex flex-col items-center">
+            <span className="text-[9px] sm:text-[10px] font-bold uppercase text-zinc-400 tracking-wider">
               {t("auraEarned")}
             </span>
-            <span className="text-xl sm:text-2xl font-black font-mono text-cyan-400 mt-1">
+            <span className="text-lg sm:text-xl font-black font-mono text-cyan-400 mt-1">
               +{pointsGained.toLocaleString()}
             </span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 flex flex-col items-center">
-            <span className="text-[10px] font-bold uppercase text-zinc-400 tracking-wider">
+          <div className="p-3 rounded-2xl bg-white/[0.04] border border-yellow-400/30 flex flex-col items-center shadow-[0_0_15px_rgba(250,204,21,0.15)]">
+            <span className="text-[9px] sm:text-[10px] font-bold uppercase text-amber-300 tracking-wider">
+              {t("coinsEarned")}
+            </span>
+            <span className="text-lg sm:text-xl font-black font-mono text-yellow-300 mt-1 flex items-center gap-1">
+              <span>🟡</span>
+              +{coinsGained.toLocaleString()}
+            </span>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-white/[0.04] border border-white/10 flex flex-col items-center">
+            <span className="text-[9px] sm:text-[10px] font-bold uppercase text-zinc-400 tracking-wider">
               {t("maxCombo")}
             </span>
-            <span className="text-xl sm:text-2xl font-black font-mono text-orange-400 mt-1 flex items-center gap-1">
-              <Flame className="w-5 h-5 inline text-orange-400" />
+            <span className="text-lg sm:text-xl font-black font-mono text-orange-400 mt-1 flex items-center gap-1">
+              <Flame className="w-4 h-4 inline text-orange-400" />
               x{highestCombo}
             </span>
           </div>

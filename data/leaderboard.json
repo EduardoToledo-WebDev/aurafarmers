@@ -94,10 +94,28 @@
       "id": "usr_pfsn853mvsuu40f",
       "nickname": "Toledin",
       "recoveryKey": "AURA-38177D",
-      "totalPoints": 57017,
+      "totalPoints": 269742,
       "highestCombo": 81,
       "createdAt": "2026-10-29T01:41:52.027Z",
-      "updatedAt": "2026-10-29T02:38:34.202Z"
+      "updatedAt": "2026-10-30T02:39:48.704Z",
+      "coins": 12340,
+      "unlockedItemIds": [
+        "gloves_classic",
+        "head_none",
+        "aura_classic",
+        "head_pixel_shades",
+        "gloves_boxing",
+        "aura_rainbow",
+        "head_fire_horns",
+        "head_golden_crown",
+        "gloves_void_galaxy",
+        "aura_golden_phoenix"
+      ],
+      "equipped": {
+        "gloves": "gloves_void_galaxy",
+        "head": "head_golden_crown",
+        "aura": "aura_rainbow"
+      }
     }
   },
   "weeklyScores": {
@@ -153,9 +171,9 @@
         "updatedAt": "2026-10-28T17:30:00.000Z"
       },
       "usr_pfsn853mvsuu40f": {
-        "points": 57017,
+        "points": 269742,
         "highestCombo": 81,
-        "updatedAt": "2026-10-29T02:38:34.202Z"
+        "updatedAt": "2026-10-30T02:39:34.596Z"
       }
     }
   }

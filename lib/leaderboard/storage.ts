@@ -6,9 +6,16 @@ import {
   LeaderboardEntry,
   LeaderboardResponse,
   Player,
+  PlayerEquipped,
   WeeklyScoreRecord,
 } from "./types";
 import { getRank } from "@/lib/ranks";
+import {
+  DEFAULT_EQUIPPED,
+  DEFAULT_UNLOCKED_ITEMS,
+  getShopItem,
+  ShopCategory,
+} from "@/lib/shop/catalog";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "leaderboard.json");
@@ -71,9 +78,23 @@ async function saveData(data: LeaderboardData): Promise<void> {
   await fs.rename(tempFile, DATA_FILE);
 }
 
+export function normalizePlayer(p: Player): Player {
+  return {
+    ...p,
+    coins: typeof p.coins === "number" ? p.coins : 0,
+    unlockedItemIds: Array.isArray(p.unlockedItemIds) && p.unlockedItemIds.length > 0
+      ? p.unlockedItemIds
+      : [...DEFAULT_UNLOCKED_ITEMS],
+    equipped: p.equipped
+      ? { ...DEFAULT_EQUIPPED, ...p.equipped }
+      : { ...DEFAULT_EQUIPPED },
+  };
+}
+
 export async function getPlayer(playerId: string): Promise<Player | null> {
   const data = await loadData();
-  return data.players[playerId] || null;
+  const player = data.players[playerId];
+  return player ? normalizePlayer(player) : null;
 }
 
 export async function getPlayerByRecoveryKey(recoveryKey: string): Promise<Player | null> {
@@ -82,7 +103,7 @@ export async function getPlayerByRecoveryKey(recoveryKey: string): Promise<Playe
   const player = Object.values(data.players).find(
     (p) => p.recoveryKey.toUpperCase() === normalizedKey
   );
-  return player || null;
+  return player ? normalizePlayer(player) : null;
 }
 
 export async function addPlayerRoundScore(params: {
@@ -90,7 +111,7 @@ export async function addPlayerRoundScore(params: {
   nickname?: string;
   pointsToAdd: number;
   combo?: number;
-}): Promise<{ player: Player; weeklyScore: WeeklyScoreRecord; week: string }> {
+}): Promise<{ player: Player; weeklyScore: WeeklyScoreRecord; week: string; coinsEarned: number }> {
   return enqueueWrite(async () => {
     const data = await loadData();
     const now = new Date().toISOString();
@@ -99,6 +120,8 @@ export async function addPlayerRoundScore(params: {
     let player = data.players[params.playerId];
     const cleanNick = (params.nickname?.trim() || player?.nickname || `AuraFarmer_${params.playerId.slice(0, 4)}`).slice(0, 20);
     const safeAdd = Math.max(0, params.pointsToAdd);
+    // 10:1 ratio - 10,000 points = 1,000 coins
+    const coinsEarned = Math.floor(safeAdd / 10);
 
     if (!player) {
       player = {
@@ -107,13 +130,18 @@ export async function addPlayerRoundScore(params: {
         recoveryKey: generateRecoveryKey(),
         totalPoints: safeAdd,
         highestCombo: params.combo || 0,
+        coins: coinsEarned,
+        unlockedItemIds: [...DEFAULT_UNLOCKED_ITEMS],
+        equipped: { ...DEFAULT_EQUIPPED },
         createdAt: now,
         updatedAt: now,
       };
     } else {
+      player = normalizePlayer(player);
       player.nickname = cleanNick;
       player.totalPoints = (player.totalPoints || 0) + safeAdd;
       player.highestCombo = Math.max(player.highestCombo || 0, params.combo || 0);
+      player.coins = (player.coins || 0) + coinsEarned;
       player.updatedAt = now;
     }
     data.players[params.playerId] = player;
@@ -137,7 +165,7 @@ export async function addPlayerRoundScore(params: {
 
     await saveData(data);
 
-    return { player, weeklyScore: updatedWeekly, week };
+    return { player, weeklyScore: updatedWeekly, week, coinsEarned };
   });
 }
 
@@ -162,10 +190,14 @@ export async function syncPlayerScore(params: {
         recoveryKey: generateRecoveryKey(),
         totalPoints: Math.max(0, params.points),
         highestCombo: params.combo || 0,
+        coins: 0,
+        unlockedItemIds: [...DEFAULT_UNLOCKED_ITEMS],
+        equipped: { ...DEFAULT_EQUIPPED },
         createdAt: now,
         updatedAt: now,
       };
     } else {
+      player = normalizePlayer(player);
       player.nickname = cleanNick;
       player.totalPoints = Math.max(player.totalPoints, params.points);
       player.highestCombo = Math.max(player.highestCombo, params.combo || 0);
@@ -193,6 +225,70 @@ export async function syncPlayerScore(params: {
     await saveData(data);
 
     return { player, weeklyScore: updatedWeekly, week };
+  });
+}
+
+export async function buyShopItem(params: {
+  playerId: string;
+  itemId: string;
+}): Promise<{ success: boolean; player?: Player; error?: string }> {
+  return enqueueWrite(async () => {
+    const data = await loadData();
+    let player = data.players[params.playerId];
+    if (!player) {
+      return { success: false, error: "player_not_found" };
+    }
+    player = normalizePlayer(player);
+
+    const item = getShopItem(params.itemId);
+    if (!item) {
+      return { success: false, error: "item_not_found" };
+    }
+
+    if (player.unlockedItemIds.includes(params.itemId)) {
+      return { success: false, error: "already_owned" };
+    }
+
+    if (player.coins < item.price) {
+      return { success: false, error: "insufficient_coins" };
+    }
+
+    player.coins -= item.price;
+    player.unlockedItemIds.push(params.itemId);
+    player.equipped[item.category] = params.itemId;
+    player.updatedAt = new Date().toISOString();
+
+    data.players[params.playerId] = player;
+    await saveData(data);
+
+    return { success: true, player };
+  });
+}
+
+export async function equipShopItem(params: {
+  playerId: string;
+  slot: ShopCategory;
+  itemId: string;
+}): Promise<{ success: boolean; player?: Player; error?: string }> {
+  return enqueueWrite(async () => {
+    const data = await loadData();
+    let player = data.players[params.playerId];
+    if (!player) {
+      return { success: false, error: "player_not_found" };
+    }
+    player = normalizePlayer(player);
+
+    if (params.itemId !== "head_none" && !player.unlockedItemIds.includes(params.itemId)) {
+      return { success: false, error: "item_not_owned" };
+    }
+
+    player.equipped[params.slot] = params.itemId;
+    player.updatedAt = new Date().toISOString();
+
+    data.players[params.playerId] = player;
+    await saveData(data);
+
+    return { success: true, player };
   });
 }
 

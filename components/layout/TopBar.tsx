@@ -10,6 +10,7 @@ import {
   Volume2,
   VolumeX,
   Settings,
+  ShoppingBag,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
@@ -22,12 +23,14 @@ interface NextRival {
 interface TopBarProps {
   combo: number;
   auraPoints: number;
+  coins: number;
   nextRival?: NextRival | null;
   inactivityRemaining?: number | null;
   onEndRound: () => void;
   musicMuted: boolean;
   musicPlaying: boolean;
   onToggleMusic: () => void;
+  onOpenShop: () => void;
   onOpenLeaderboard: () => void;
   onOpenSettings: () => void;
 }
@@ -35,12 +38,14 @@ interface TopBarProps {
 export default function TopBar({
   combo,
   auraPoints,
+  coins,
   nextRival,
   inactivityRemaining,
   onEndRound,
   musicMuted,
   musicPlaying,
   onToggleMusic,
+  onOpenShop,
   onOpenLeaderboard,
   onOpenSettings,
 }: TopBarProps) {
@@ -48,8 +53,8 @@ export default function TopBar({
 
   return (
     <header className="absolute top-0 inset-x-0 z-30 pt-3 pb-8 px-4 sm:px-6 flex items-center justify-between bg-gradient-to-b from-black/85 via-black/30 to-transparent pointer-events-none select-none transition-all duration-300">
-      {/* Left: Floating Brand & Aura Points */}
-      <div className="flex items-center gap-3 pointer-events-auto">
+      {/* Left: Floating Brand & Aura Points & Coins */}
+      <div className="flex items-center gap-2.5 pointer-events-auto flex-wrap">
         <div className="relative h-9 sm:h-11 w-28 sm:w-36 flex items-center">
           <Image
             src="/logo.png"
@@ -65,6 +70,11 @@ export default function TopBar({
           <span>{auraPoints.toLocaleString()}</span>
         </div>
 
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-yellow-400/50 text-xs font-mono font-bold text-yellow-300 shadow-md">
+          <span>🟡</span>
+          <span>{coins.toLocaleString()}</span>
+        </div>
+
         {combo >= 2 && (
           <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-orange-600/70 to-rose-600/70 border border-orange-400/80 text-xs font-black text-yellow-300 animate-pulse shadow-[0_0_15px_rgba(249,115,22,0.7)]">
             <Flame className="w-3.5 h-3.5 text-orange-300 animate-bounce" />
@@ -73,32 +83,32 @@ export default function TopBar({
         )}
       </div>
 
-      {/* Center: Live Rank Tracker to Overtake Next Player */}
+      {/* Center: Inactivity Warning only when active (leaves center free for Overdrive badge) */}
       <div className="hidden md:flex flex-col items-center pointer-events-auto">
-        {inactivityRemaining !== null && inactivityRemaining !== undefined && inactivityRemaining <= 5 ? (
+        {inactivityRemaining !== null && inactivityRemaining !== undefined && inactivityRemaining <= 5 && (
           <div className="px-3.5 py-1 rounded-full bg-rose-600 border-2 border-yellow-300 text-white text-[11px] font-black animate-pulse shadow-lg">
             {t("inactivityWarning", { s: inactivityRemaining })}
-          </div>
-        ) : nextRival && nextRival.pointsNeeded > 0 ? (
-          <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/70 backdrop-blur-md border border-cyan-400/50 text-xs shadow-lg">
-            <Trophy className="w-3.5 h-3.5 text-amber-400" />
-            <span className="text-zinc-200">
-              {t("pointsToBeat", {
-                pts: nextRival.pointsNeeded.toLocaleString(),
-                nick: nextRival.nickname,
-                rank: nextRival.rank,
-              })}
-            </span>
-          </div>
-        ) : (
-          <div className="px-3.5 py-1 rounded-full bg-amber-500/30 border border-amber-400/60 text-amber-200 text-xs font-bold shadow-lg">
-            {t("leadingRank1")}
           </div>
         )}
       </div>
 
-      {/* Right: Controls & End Round Button */}
+      {/* Right: Compact Leaderboard Rank Badge + Controls & End Round Button */}
       <div className="flex items-center gap-2 pointer-events-auto">
+        {/* Compact Leaderboard Rank / Rival Tracker Badge */}
+        {nextRival && nextRival.pointsNeeded > 0 ? (
+          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-cyan-400/40 text-[11px] shadow-sm">
+            <Trophy className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span className="text-zinc-200 truncate max-w-[200px]">
+              +{nextRival.pointsNeeded.toLocaleString()} vs #{nextRival.rank} {nextRival.nickname}
+            </span>
+          </div>
+        ) : (
+          <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/20 backdrop-blur-md border border-amber-400/50 text-amber-200 text-[11px] font-bold shadow-sm">
+            <span className="text-xs">👑</span>
+            <span>{t("leadingRank1")}</span>
+          </div>
+        )}
+
         {/* Audio Toggle */}
         <button
           onClick={onToggleMusic}
@@ -110,6 +120,15 @@ export default function TopBar({
           ) : (
             <Volume2 className="w-4 h-4 text-cyan-400" />
           )}
+        </button>
+
+        {/* Quick Shop */}
+        <button
+          onClick={onOpenShop}
+          title={t("shop")}
+          className="p-2 rounded-xl bg-black/50 hover:bg-black/70 backdrop-blur-md border border-emerald-400/40 text-emerald-300 transition cursor-pointer hover:border-emerald-300"
+        >
+          <ShoppingBag className="w-4 h-4" />
         </button>
 
         {/* Quick Leaderboard */}

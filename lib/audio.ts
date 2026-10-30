@@ -270,6 +270,51 @@ class SoundManager {
     osc.start(now);
     osc.stop(now + 0.28);
   }
+
+  // Massive Aura Overdrive / Double Palm Blast activation sound
+  playAuraOverdrive() {
+    if (!this.enabled) return;
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+
+    // Sub-bass mega explosion drop
+    const sub = ctx.createOscillator();
+    const subGain = ctx.createGain();
+    sub.type = "sine";
+    sub.frequency.setValueAtTime(320, now);
+    sub.frequency.exponentialRampToValueAtTime(38, now + 0.6);
+
+    subGain.gain.setValueAtTime(0.85, now);
+    subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+
+    sub.connect(subGain);
+    subGain.connect(ctx.destination);
+    sub.start(now);
+    sub.stop(now + 0.8);
+
+    // Rising energy power-up chord (sawtooth synth)
+    const freqs = [220, 277.18, 329.63, 440];
+    freqs.forEach((baseF) => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(baseF, now);
+      osc.frequency.exponentialRampToValueAtTime(baseF * 3.5, now + 0.45);
+
+      g.gain.setValueAtTime(0.18, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+
+      osc.connect(g);
+      g.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.55);
+    });
+
+    // Thunder crackle overlay
+    this.playThunderZap();
+  }
 }
 
 export const sounds = new SoundManager();
