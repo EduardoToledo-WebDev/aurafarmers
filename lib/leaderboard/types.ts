@@ -13,6 +13,7 @@ export interface Player {
   coins: number;
   unlockedItemIds: string[];
   equipped: PlayerEquipped;
+  rebirthCount?: number;
   createdAt: string;
   updatedAt: string;
 }

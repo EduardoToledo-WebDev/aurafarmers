@@ -51,6 +51,7 @@ export default function AuraFarmersApp() {
     recoverProfile,
     buyItem,
     equipItem,
+    rebirth,
   } = usePlayerProfile();
 
   // Navigation stage flow
@@ -378,6 +379,23 @@ export default function AuraFarmersApp() {
     return false;
   };
 
+  const handleRebirth = useCallback(
+    async (nicknameConfirmation: string) => {
+      const res = await rebirth(nicknameConfirmation);
+      if (res.success) {
+        setTotalAuraPoints(0);
+        setRoundPoints(0);
+        setEnergyPoints(0);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("aurafarmers_points", "0");
+        }
+        refreshLeaderboard();
+      }
+      return res;
+    },
+    [rebirth, refreshLeaderboard]
+  );
+
   const isBlurred = stage === "main_menu" || stage === "countdown" || stage === "summary";
 
   return (
@@ -509,6 +527,8 @@ export default function AuraFarmersApp() {
           setSettingsOpen(false);
           setLeaderboardOpen(true);
         }}
+        nickname={nickname}
+        onRebirth={handleRebirth}
       />
 
       {/* 9. WEEKLY LEADERBOARD MODAL */}

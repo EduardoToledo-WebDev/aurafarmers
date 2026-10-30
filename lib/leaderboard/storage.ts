@@ -292,6 +292,45 @@ export async function equipShopItem(params: {
   });
 }
 
+export async function rebirthPlayer(
+  playerId: string,
+  nicknameConfirmation: string
+): Promise<{ success: boolean; player?: Player; error?: string }> {
+  return enqueueWrite(async () => {
+    const data = await loadData();
+    let player = data.players[playerId];
+    if (!player) {
+      return { success: false, error: "player_not_found" };
+    }
+
+    if (player.nickname.trim().toLowerCase() !== nicknameConfirmation.trim().toLowerCase()) {
+      return { success: false, error: "nickname_mismatch" };
+    }
+
+    player = normalizePlayer(player);
+    const now = new Date().toISOString();
+    player.totalPoints = 0;
+    player.highestCombo = 0;
+    player.rebirthCount = (player.rebirthCount || 0) + 1;
+    player.updatedAt = now;
+
+    // Reset points in current week
+    const week = getCurrentWeekKey();
+    if (data.weeklyScores[week] && data.weeklyScores[week][playerId]) {
+      data.weeklyScores[week][playerId] = {
+        points: 0,
+        highestCombo: 0,
+        updatedAt: now,
+      };
+    }
+
+    data.players[playerId] = player;
+    await saveData(data);
+
+    return { success: true, player };
+  });
+}
+
 export async function getLeaderboard(
   weekKey?: string,
   limit = 50,

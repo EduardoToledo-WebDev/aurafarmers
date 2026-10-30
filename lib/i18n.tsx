@@ -116,6 +116,23 @@ export const translations = {
     needMoreCoinsHint: "Farm aura points in rounds to earn coins (10 pts = 1 coin)",
     buySuccess: "Item unlocked & equipped!",
     equipSuccess: "Item equipped!",
+
+    // Tour Guide
+    tourGuide: "Interactive Guide (?)",
+    tourStartHelp: "Show interactive guide",
+
+    // Rebirth
+    rebirth: "Rebirth",
+    rebirthDesc: "Reset your Aura points back to 0 for a fresh start",
+    rebirthModalTitle: "AURA REBIRTH",
+    rebirthWarning: "⚠️ This action is permanent and IRREVERSIBLE! Your total Aura points will be reset to 0, and your weekly leaderboard score will reset to 0.",
+    rebirthKeepNote: "You will keep your unlocked cosmetics, your coins, and your secret recovery key.",
+    rebirthConfirmPrompt: "To confirm this rebirth, type your nickname exactly:",
+    rebirthTypePlaceholder: "Type your nickname here",
+    rebirthConfirmBtn: "CONFIRM REBIRTH",
+    rebirthCancelBtn: "Cancel",
+    rebirthSuccess: "✨ Rebirth complete! Your Aura has returned to zero.",
+    rebirthMismatchError: "Nickname does not match. Please verify spelling.",
   },
   es: {
     // Menu & Top bar
@@ -228,6 +245,23 @@ export const translations = {
     needMoreCoinsHint: "Farmea puntos en las rondas para conseguir monedas (10 pts = 1 moneda)",
     buySuccess: "¡Objeto desbloqueado y equipado!",
     equipSuccess: "¡Objeto equipado!",
+
+    // Tour Guide
+    tourGuide: "Guía Interactiva (?)",
+    tourStartHelp: "Ver guía interactiva",
+
+    // Rebirth
+    rebirth: "Renacer",
+    rebirthDesc: "Reinicia tus puntos de Aura a 0 para un nuevo comienzo",
+    rebirthModalTitle: "RENACER AURA",
+    rebirthWarning: "⚠️ ¡Esta acción es permanente e IRREVERSIBLE! Tus puntos totales de Aura se reiniciarán a 0 y tu puntaje en la tabla semanal también se reiniciará a 0.",
+    rebirthKeepNote: "Conservarás tus cosméticos desbloqueados, tus monedas y tu llave secreta de recuperación.",
+    rebirthConfirmPrompt: "Para confirmar el renacer, escribe tu apodo exactamente:",
+    rebirthTypePlaceholder: "Escribe tu apodo aquí",
+    rebirthConfirmBtn: "CONFIRMAR RENACER",
+    rebirthCancelBtn: "Cancelar",
+    rebirthSuccess: "✨ ¡Renacer completado! Tu Aura ha vuelto a cero.",
+    rebirthMismatchError: "El apodo no coincide. Verifica que esté escrito igual.",
   },
 };
 

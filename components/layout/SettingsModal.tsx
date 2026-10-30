@@ -14,6 +14,9 @@ import {
   SkipForward,
   SkipBack,
   Music,
+  RotateCcw,
+  AlertTriangle,
+  Check,
 } from "lucide-react";
 import { CameraStatus } from "@/hooks/useCamera";
 import { Track } from "@/hooks/useBackgroundMusic";
@@ -37,6 +40,9 @@ interface SettingsModalProps {
   onPrevTrack: () => void;
   onSelectTrack: (index: number) => void;
   onOpenProfile: () => void;
+  // Rebirth
+  nickname: string;
+  onRebirth: (nickname: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 export default function SettingsModal({
@@ -55,8 +61,40 @@ export default function SettingsModal({
   onPrevTrack,
   onSelectTrack,
   onOpenProfile,
+  nickname,
+  onRebirth,
 }: SettingsModalProps) {
   const { lang, setLang, t } = useI18n();
+  const [showRebirthModal, setShowRebirthModal] = React.useState(false);
+  const [confirmInput, setConfirmInput] = React.useState("");
+  const [isRebirthing, setIsRebirthing] = React.useState(false);
+  const [rebirthError, setRebirthError] = React.useState<string | null>(null);
+  const [rebirthSuccess, setRebirthSuccess] = React.useState(false);
+
+  const isMatch =
+    confirmInput.trim().toLowerCase() === nickname.trim().toLowerCase() &&
+    confirmInput.trim().length > 0;
+
+  const handleExecuteRebirth = async () => {
+    if (!isMatch || isRebirthing) return;
+    setIsRebirthing(true);
+    setRebirthError(null);
+
+    const res = await onRebirth(confirmInput.trim());
+    setIsRebirthing(false);
+
+    if (res.success) {
+      setRebirthSuccess(true);
+      setTimeout(() => {
+        setRebirthSuccess(false);
+        setShowRebirthModal(false);
+        setConfirmInput("");
+        onClose();
+      }, 1800);
+    } else {
+      setRebirthError(t("rebirthMismatchError"));
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -254,6 +292,118 @@ export default function SettingsModal({
       >
         <RefreshCw className="w-3.5 h-3.5" /> {t("reconnectCamera")}
       </button>
+
+      {/* Rebirth / Renacer Section */}
+      <div className="border-t border-rose-500/20 pt-2">
+        <button
+          onClick={() => {
+            setConfirmInput("");
+            setRebirthError(null);
+            setRebirthSuccess(false);
+            setShowRebirthModal(true);
+          }}
+          className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-gradient-to-r from-rose-950/60 via-red-900/40 to-amber-950/60 hover:from-rose-900/80 hover:to-amber-900/80 border border-rose-500/50 text-rose-300 hover:text-rose-100 text-xs font-bold transition cursor-pointer shadow-[0_0_15px_rgba(244,63,94,0.2)] hover:shadow-[0_0_20px_rgba(244,63,94,0.4)] active:scale-95"
+        >
+          <RotateCcw className="w-3.5 h-3.5 text-rose-400" />
+          <span>{t("rebirth")}</span>
+        </button>
+      </div>
+
+      {/* REBIRTH CONFIRMATION MODAL OVERLAY */}
+      {showRebirthModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="relative w-full max-w-sm rounded-2xl bg-zinc-950 border-2 border-rose-500/60 p-5 sm:p-6 shadow-[0_0_50px_rgba(225,29,72,0.4)] flex flex-col gap-4 text-center animate-in zoom-in-95 duration-150">
+            {/* Warning Icon Badge */}
+            <div className="mx-auto w-12 h-12 rounded-full bg-rose-500/20 border-2 border-rose-400/60 flex items-center justify-center shadow-[0_0_20px_rgba(244,63,94,0.5)]">
+              <AlertTriangle className="w-6 h-6 text-rose-400 animate-bounce" />
+            </div>
+
+            {/* Modal Title */}
+            <div>
+              <h3 className="text-base sm:text-lg font-black uppercase tracking-wider text-rose-200">
+                {t("rebirthModalTitle")}
+              </h3>
+              <p className="text-xs text-rose-300/90 mt-1 leading-relaxed">
+                {t("rebirthWarning")}
+              </p>
+            </div>
+
+            {/* Rebirth details */}
+            <div className="p-3 rounded-xl bg-rose-950/30 border border-rose-500/30 text-[11px] text-zinc-300">
+              {t("rebirthKeepNote")}
+            </div>
+
+            {/* Nickname verification challenge */}
+            <div className="space-y-2 text-left">
+              <span className="text-xs text-zinc-300 font-medium">
+                {t("rebirthConfirmPrompt")}
+              </span>
+              <div className="px-3 py-1.5 rounded-lg bg-black/80 border border-rose-400/40 text-center font-mono font-bold text-rose-300 text-sm select-all">
+                {nickname}
+              </div>
+
+              <input
+                type="text"
+                value={confirmInput}
+                onChange={(e) => {
+                  setConfirmInput(e.target.value);
+                  setRebirthError(null);
+                }}
+                placeholder={t("rebirthTypePlaceholder")}
+                autoFocus
+                className="w-full px-3 py-2 rounded-xl bg-black/70 border border-white/20 focus:border-rose-400 text-white font-mono text-center text-xs tracking-wider outline-none transition placeholder:text-zinc-500"
+              />
+
+              {rebirthError && (
+                <div className="text-[11px] text-rose-400 font-semibold text-center">
+                  {rebirthError}
+                </div>
+              )}
+
+              {rebirthSuccess && (
+                <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-400 font-bold">
+                  <Check className="w-4 h-4" />
+                  <span>{t("rebirthSuccess")}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Action buttons */}
+            <div className="grid grid-cols-2 gap-2.5 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowRebirthModal(false);
+                  setConfirmInput("");
+                  setRebirthError(null);
+                }}
+                disabled={isRebirthing}
+                className="py-2.5 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-xs transition cursor-pointer"
+              >
+                {t("rebirthCancelBtn")}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleExecuteRebirth}
+                disabled={!isMatch || isRebirthing || rebirthSuccess}
+                className={`py-2.5 px-3 rounded-xl font-black text-xs uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                  isMatch && !isRebirthing && !rebirthSuccess
+                    ? "bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white shadow-[0_0_20px_rgba(225,29,72,0.6)] cursor-pointer"
+                    : "bg-zinc-800 text-zinc-500 border border-zinc-700 cursor-not-allowed opacity-60"
+                }`}
+              >
+                {isRebirthing ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <RotateCcw className="w-3.5 h-3.5" />
+                )}
+                <span>{t("rebirthConfirmBtn")}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

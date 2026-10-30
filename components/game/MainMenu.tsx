@@ -2,8 +2,19 @@
 
 import React from "react";
 import Image from "next/image";
-import { Flame, Trophy, Settings, Volume2, VolumeX, Zap, ShoppingBag, Sparkles } from "lucide-react";
+import {
+  Flame,
+  Trophy,
+  Settings,
+  Volume2,
+  VolumeX,
+  Zap,
+  ShoppingBag,
+  Sparkles,
+  HelpCircle,
+} from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { startMainMenuTour } from "@/lib/tour";
 
 interface MainMenuProps {
   onPlayClick: () => void;
@@ -28,13 +39,13 @@ export default function MainMenu({
   auraPoints,
   coins,
 }: MainMenuProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
 
   return (
     <div className="absolute inset-0 z-30 flex flex-col items-center justify-between p-6 sm:p-10 select-none animate-in fade-in duration-300">
-      {/* Top floating bar: Sound, Coins & Aura balance */}
+      {/* Top floating bar: Guide Help (?), Coins, Aura balance & Sound */}
       <div className="w-full max-w-4xl flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div id="tour-balance" className="flex items-center gap-2.5 flex-wrap">
           <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-xs font-mono font-bold text-amber-300 shadow-xl">
             <Zap className="w-4 h-4 text-cyan-400" />
             <span>{auraPoints.toLocaleString()} {t("accumulatedAura")}</span>
@@ -46,18 +57,32 @@ export default function MainMenu({
           </div>
         </div>
 
-        <button
-          onClick={onToggleMusic}
-          aria-label={musicMuted || !musicPlaying ? "Unmute" : "Mute"}
-          title={musicMuted || !musicPlaying ? "Unmute" : "Mute"}
-          className="p-2.5 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/20 text-white shadow-xl transition cursor-pointer hover:scale-105 active:scale-95"
-        >
-          {musicMuted || !musicPlaying ? (
-            <VolumeX className="w-4 h-4 text-zinc-400" />
-          ) : (
-            <Volume2 className="w-4 h-4 text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-          )}
-        </button>
+        {/* Top Right Actions: Interactive Tour Guide (?) & Audio toggle */}
+        <div className="flex items-center gap-2">
+          <button
+            id="tour-help"
+            onClick={() => startMainMenuTour(lang)}
+            aria-label={t("tourGuide")}
+            title={t("tourGuide")}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-cyan-950/70 hover:bg-cyan-900/80 backdrop-blur-md border border-cyan-400/50 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.3)] hover:shadow-[0_0_20px_rgba(34,211,238,0.6)] transition cursor-pointer hover:scale-105 active:scale-95 text-xs font-bold font-mono"
+          >
+            <HelpCircle className="w-4 h-4 text-cyan-300 animate-pulse" />
+            <span>?</span>
+          </button>
+
+          <button
+            onClick={onToggleMusic}
+            aria-label={musicMuted || !musicPlaying ? "Unmute" : "Mute"}
+            title={musicMuted || !musicPlaying ? "Unmute" : "Mute"}
+            className="p-2.5 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/20 text-white shadow-xl transition cursor-pointer hover:scale-105 active:scale-95"
+          >
+            {musicMuted || !musicPlaying ? (
+              <VolumeX className="w-4 h-4 text-zinc-400" />
+            ) : (
+              <Volume2 className="w-4 h-4 text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Main Center Stage */}
@@ -77,6 +102,7 @@ export default function MainMenu({
         <div className="flex flex-col items-center w-full space-y-3.5">
           {/* BIG ARCADE PLAY BUTTON */}
           <button
+            id="tour-play"
             onClick={onPlayClick}
             className="group relative cursor-pointer w-full max-w-xs transition-transform duration-200 hover:scale-105 active:scale-95"
           >
@@ -97,8 +123,9 @@ export default function MainMenu({
 
           {/* SHOP BUTTON */}
           <button
+            id="tour-shop"
             onClick={onOpenShop}
-            className="group relative cursor-pointer w-full max-w-xs py-3 px-5 rounded-xl bg-gradient-to-b from-emerald-600 via-teal-700 to-emerald-900 border-2 border-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.5)] hover:shadow-[0_0_25px_rgba(16,185,129,0.8)] hover:scale-105 active:scale-95 transition flex items-center justify-center gap-2"
+            className="group relative cursor-pointer w-full max-w-xs py-3 px-5 rounded-xl bg-gradient-to-b from-emerald-600 via-teal-700 to-emerald-900 border-2 border-emerald-300 shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:shadow-[0_0_25px_rgba(16,185,129,0.8)] hover:scale-105 active:scale-95 transition flex items-center justify-center gap-2"
           >
             <ShoppingBag className="w-4 h-4 text-emerald-200" />
             <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white [text-shadow:_0_1px_0_#064e3b]">
@@ -111,6 +138,7 @@ export default function MainMenu({
           <div className="grid grid-cols-2 gap-3 w-full max-w-xs">
             {/* LEADERBOARD BUTTON */}
             <button
+              id="tour-leaderboard"
               onClick={onOpenLeaderboard}
               className="group relative cursor-pointer py-3 px-3.5 rounded-xl bg-gradient-to-b from-purple-600 via-purple-700 to-indigo-900 border-2 border-amber-300 shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:shadow-[0_0_25px_rgba(168,85,247,0.8)] hover:scale-105 active:scale-95 transition flex items-center justify-center gap-1.5"
             >
@@ -122,6 +150,7 @@ export default function MainMenu({
 
             {/* SETTINGS BUTTON */}
             <button
+              id="tour-settings"
               onClick={onOpenSettings}
               className="group relative cursor-pointer py-3 px-3.5 rounded-xl bg-gradient-to-b from-cyan-600 via-blue-700 to-slate-900 border-2 border-cyan-300 shadow-[0_0_20px_rgba(34,211,238,0.5)] hover:shadow-[0_0_25px_rgba(34,211,238,0.8)] hover:scale-105 active:scale-95 transition flex items-center justify-center gap-1.5"
             >
@@ -135,7 +164,10 @@ export default function MainMenu({
       </div>
 
       {/* Footer hint */}
-      <div className="text-center text-xs text-zinc-300 font-medium tracking-wide bg-black/40 backdrop-blur-sm px-4 py-1.5 rounded-full border border-white/10">
+      <div
+        id="tour-hint"
+        className="text-center text-xs text-zinc-300 font-medium tracking-wide bg-black/40 backdrop-blur-sm px-4 py-1.5 rounded-full border border-white/10"
+      >
         {t("hintScale")}
       </div>
     </div>

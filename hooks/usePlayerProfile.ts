@@ -300,6 +300,37 @@ export function usePlayerProfile() {
     [playerId, applyPlayerState]
   );
 
+  const rebirth = useCallback(
+    async (nicknameConfirmation: string): Promise<{ success: boolean; error?: string }> => {
+      if (!playerId) return { success: false, error: "no_player" };
+
+      try {
+        setIsSyncing(true);
+        const res = await fetch("/api/player/rebirth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ playerId, nickname: nicknameConfirmation }),
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          return { success: false, error: data.error || "rebirth_failed" };
+        }
+
+        if (data.player) {
+          applyPlayerState(data.player);
+        }
+        return { success: true };
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "rebirth_failed";
+        return { success: false, error: msg };
+      } finally {
+        setIsSyncing(false);
+      }
+    },
+    [playerId, applyPlayerState]
+  );
+
   return {
     playerId,
     nickname,
@@ -317,5 +348,6 @@ export function usePlayerProfile() {
     recoverProfile,
     buyItem,
     equipItem,
+    rebirth,
   };
 }
